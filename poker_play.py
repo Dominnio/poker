@@ -1,5 +1,5 @@
 import random
-import numpy
+import numpy as np
 
 def value_to_number(value):
    if(value == "A"):
@@ -112,10 +112,207 @@ class Deck:
        s += str(card) + "\n"
     return s
 
+def set_seq(cards):
+  n = len(cards)
+  while n > 1:
+    for i in range(n - 1):
+      if(cards[i] < cards[i+1]):
+        tmp = cards[i]
+        cards[i] = cards[i+1]
+        cards[i+1] = tmp
+    n = n - 1
+  seq = [[cards[0]]]
+  seq_idx = 0
+  for i in range(1,len(cards)):
+    if(cards[i] == cards[i-1]):
+      seq[seq_idx].append(cards[i])
+    else:
+      seq.append([cards[i]])
+      seq_idx += 1
+  return seq
+
+def set_col(cards):
+  n = len(cards)
+  while n > 1:
+    for i in range(n - 1):
+      if(cards[i] < cards[i+1]):
+        tmp = cards[i]
+        cards[i] = cards[i+1]
+        cards[i+1] = tmp
+    n = n - 1
+  col = [[],[],[],[]]
+  for card in cards:
+    if(card.color == "C"):
+      c = 0
+    elif (card.color == "D"):
+      c = 1
+    elif (card.color == "H"):
+      c = 2
+    else:
+      c = 3
+    col[c].append(card)
+  return col
+
+def check_high_card(seq):
+  return [1,seq[0][0],seq[1][0],seq[2][0],seq[3][0],seq[4][0]]
+
+def check_two_pair(seq):
+  seq_tmp = seq
+  for s in seq_tmp: 
+    if(len(s) == 2):
+      seq_tmp.remove(s)
+      for ss in seq:
+        if(len(ss) == 2):
+          seq_tmp.remove(ss)
+          return [3,s,ss,seq[0][0]]
+      return [2,s,seq[0][0],seq[1][0],seq[2][0]]
+  return check_high_card(seq)
+
+def check_three(seq):
+  for s in seq:
+    if(len(s) == 3):
+      seq.remove(s)
+      return [4,s,seq[0][0],seq[1][0]]
+  return check_two_pair(seq)
+
+def check_straight(seq,col):
+  s = [seq[0][0]]
+  for i in range(1,len(seq)):
+    if(value_to_number(seq[i][0].value) == value_to_number(seq[i-1][0].value) - 1):
+      s.append(seq[i][0])
+      if(len(s) == 5):
+        return [5, s]
+    else:
+      s = [seq[i][0]]
+  return check_three(seq)
+
+def check_flush(seq,col):
+  for c in col:
+    if(len(c) >= 5):
+      return [6,c[:5]]
+  return check_straight(seq,col)
+      
+def check_full_house(seq,col):
+  three = None
+  for s in seq:
+    if(len(s) == 3):
+      three = s
+  if(three):
+    for ss in seq:
+      if(len(ss) >= 2 and ss[0] != three[0]):
+        return [7,three,ss[:2]]
+  return check_flush(seq,col)
+
+def check_quads(seq,col):
+  for s in seq:
+    if(len(s) == 4):
+      seq.remove(s)   
+      return [8, s, seq[0][0]]
+  return check_full_house(seq,col)
+
+def check_straight_flush(seq,col):
+  straight = [seq[0][0]]
+  for i in range(1,len(seq)):
+    if(value_to_number(seq[i][0].value) == value_to_number(seq[i-1][0].value) - 1):
+      straight.append(seq[i][0])
+      if(len(straight) == 5):
+        flush = set_col(straight)
+        for c in flush:
+          if(len(c) == 5):
+            return [9, straight]
+    else:
+      s = [seq[i][0]]
+  return check_quads(seq,col)
+
+def check(cards):
+  seq = set_seq(cards)
+  col = set_col(cards)
+  layout = check_straight_flush(seq,col)
+  return layout
+
+def compare(cards_x, cards_y, table):
+  x = check(table + cards_x)
+  y = check(table + cards_y)
+  if(x[0] > y[0]):
+    return [1,x,y]
+  if(x[0] < y[0]):
+    return [-1,x,y]
+  
+  if(x[0] == 9 or x[0] == 6):
+    for (card_x,card_y) in zip(x[1],x[1]):
+      if(card_x > card_y):
+        return [1,x,y]
+      if(card_x < card_y):
+        return [-1,x,y]
+    return [0,x,y]
+
+  for i in range(1,len(x)):
+    if(isinstance(x[i],list)):
+      if(x[i][0] > y[i][0]):
+        return [1,x,y]
+      if(x[i][0] < y[i][0]):
+        return [-1,x,y]
+    else:
+      if(x[i] > y[i]):
+        return [1,x,y]
+      if(x[i] < y[i]):
+        return [-1,x,y]
+  return [0,x,y]
+
+def get_winner(cards, table):
+  save = cards.copy()
+  order = np.arange(len(cards))
+  n = len(cards)
+  while n > 1:
+    for i in range(n - 1):
+      c = compare(cards[i],cards[i+1],table)[0]
+      if(c == -1):
+        tmp = cards[i]
+        cards[i] = cards[i+1]
+        cards[i+1] = tmp
+        tmp = order[i]
+        order[i] = order[i+1]
+        order[i+1] = tmp
+    n = n - 1
+  ret_order = [[order[0]]]
+  idx = 0
+  for i in range(i,len(cards) - 1):
+    c = compare(cards[i],cards[i+1],table)[0]
+    if(c == 0):
+      ret_order[idx].append(order[i+1])
+    else:
+      ret_order.append([order[i+1]])
+      idx += 1
+  for i in range(len(save)): 
+    cards[i] = check(table + save[i])
+  return [ret_order,cards]
+
+def odds(cards, table, opponents):
+  deck = Deck()
+  deck.cards.pop(cards[0].order - 1)
+  deck.cards.pop(cards[1].order - 1)
+  for i in range(len(table)):
+    deck.cards.pop(table[i].pop(table[i].order - 1))
+
+  players = []
+  for i in range(int(len(opponents))):
+    players.append(Player(int(200)))
+
+  for i in range(1000):
+    n = len(opponents)*2
+    c = random.sample(range(len(deck)),n)
+    for player in self.players:
+      player.set_cards(deck.get_card(c[i]), deck.get_card(c[i+1]))
+      i += 2
+    
+
 class Player:
   def __init__(self, stack):
     self.stack = stack
     self.cards = []
+    self.paid = 0
+    self.is_active = True
+    self.done = 0
   def __str__(self):
     s = ("chips: " + str(self.stack))
     if(len(self.cards) != 0):
@@ -127,24 +324,22 @@ class Player:
     self.cards = []
     self.cards.append(card_1)
     self.cards.append(card_2)
-
-class Players:
-  players = []
-  def add(self, player):
-     self.players.append(player)
-  def remove(self, player):
-     self.players.remove(player)
-  def __str__(self):
-    s = ""
-    for players in self.players:
-       s += str(players) + "\n"
-    return s
-  def __len__(self):
-    return len(self.players)
+  def bet(self,bet):
+    self.stack -= bet
+    self.paid += bet
+    return self.paid
+  def take(self,prize):
+    self.stack += prize
 
 class Table:
-  deck = Deck()
-  players = Players()
+  def __init__(self,players,sb,bb,ante,game_type):
+    self.deck = Deck()
+    self.players = players
+    self.sb = sb
+    self.bb = bb
+    self.ante = ante
+    self.game_type = game_type
+
   def set_cards(self):
     n = 5 + len(self.players)*2
     c = random.sample(range(52),n)
@@ -155,138 +350,103 @@ class Table:
     self.turn = self.deck.get_card(c[3])
     self.river = self.deck.get_card(c[4])
     i = 5
-    for player in self.players.players:
+    for player in self.players:
       player.set_cards(self.deck.get_card(c[i]), self.deck.get_card(c[i+1]))
       i += 2
 
-def check_high_card(cards):
-  n = len(cards)
-  while n > 1:
-    for i in range(n - 1):
-      if(cards[i] < cards[i+1]):
-        tmp = cards[i]
-        cards[i] = cards[i+1]
-        cards[i+1] = tmp
-    n = n - 1
-  return [0, cards[:len(cards)]]
+  def blinds(self):
+    self.pot = 0
+    if(len(players) == 2):
+      self.players[self.dealer].bet(self.sb)
+      self.players[(self.dealer+1)%2].bet(self.bb)
+      self.active = self.dealer
+    else:
+      self.players[(self.dealer+1)%len(self.players)].bet(self.sb)
+      self.players[(self.dealer+2)%len(self.players)].bet(self.sb)
+      self.active = (self.dealer+3)%len(self.players)
+    self.pot += sb
+    self.pot += bb
+    self.highest = bb
 
-def check_one_pair(cards):
-  cards = check_high_card(cards)
-  for card in cards[1]:
-    count = 0 
-    for other in cards[1]:
-      if(card == other and card.color != other.color):
-        same = other
-        count += 1
-      if(count == 1):
-        cards[1].remove(same)
-        cards[1].remove(card)
-        return [1,[card,same], cards[1]]
-  return cards
-
-def check_two_pairs(cards):
-  first = check_one_pair(cards)
-  if(first[0] == 0):
-    return first
-  second = check_one_pair(first[2])
-  if(second[0] == 0):
-    return first
-  else:
-    if(first[1][0] < second[1][0]):
-      tmp = first
-      first = second
-      second = tmp
-    return [2,first[1],second[1],second[2]]
-
-def check_three_of_a_kind_AND_full_AND_quads(cards):
-  pairs = check_two_pairs(cards)
-  if(pairs[0] == 0):
-    return pairs
-  if(pairs[0] == 1):
-    for card in pairs[2]:
-      if(card == pairs[1][0]):
-        pairs[1].append(card)
-        pairs[2].remove(card)
-        return [3, pairs[1], pairs[2]]
-    return pairs
-  if(pairs[0] == 2):
-    if(pairs[1][0] == pairs[2][0]):
-      pairs[1].append(pairs[2][0])
-      pairs[1].append(pairs[2][1])
-      return [8, pairs[1], pairs[3]]
-    one = check_one_pair(pairs[3])
-    if(one[0] == 1):
-      if(one[1][0] == pairs[2][0]):
-        one[1].append(pairs[2][0])
-        one[1].append(pairs[2][1])
-        rest = pairs[3]
-        rest.append(pairs[1][0])
-        rest.append(pairs[1][0])
-        rest.remove(one[1][0])
-        rest.remove(one[1][0])
-        rest = check_high_card(rest)
-        return [7, one[1], rest[1]]
-  if(pairs[0] == 2):
-    for card in pairs[3]:
-      if(card == pairs[1][0]):
-        pairs[1].append(card)
-        pairs[3].remove(card)
-        return [6, pairs[1], pairs[2], pairs[3]]
-    return pairs
-
-def check_straight(cards):
-  n = len(cards)
-  while n > 1:
-    for i in range(n - 1):
-      if(cards[i] < cards[i+1]):
-        tmp = cards[i]
-        cards[i] = cards[i+1]
-        cards[i+1] = tmp
-    n = n - 1
-  flag = True
-  for i in range(3):
-    for j in range(5):
-      print(i+j)
-      print(i+j+1)
-      if(cards[i+j] == cards[i+j+1]):
+  def round_of_betting(self):
+    while(True):
+      for i in range(self.active, len(self.players)):
+        if(not self.players[i].is_active):
+          continue
+        action = random.randint(0,2)
+        if(action == 0):
+          bet = self.highest + random.randint(0,self.players[i].stack + 1)
+          if(bet < self.players[i].stack):
+            self.highest = self.players[i].bet(bet)
+            self.players[i].done = True
+        if(action == 1):
+          bet_to_check = self.highest - self.players[i].paid
+          if(bet_to_check <= self.players[i].stack):
+            self.players[i].bet(bet_to_check)
+            self.players[i].done = True
+        if(action == 2):
+          self.players[i].done = True
+          self.players[i].is_active = False
+        
+      for i in range(self.active):
+        if(not self.players[i].is_active):
+          continue
+        action = random.randint(0,2)
+        if(action == 0):
+          bet = self.highest + random.randint(0,self.players[i].stack + 1)
+          if(bet < self.players[i].stack):
+            self.highest = self.players[i].bet(bet)
+            self.players[i].done = True
+        if(action == 1):
+          bet_to_check = self.highest - self.players[i].paid
+          if(bet_to_check <= self.players[i].stack):
+            self.players[i].bet(bet_to_check)
+            self.players[i].done = True
+        if(action == 2):
+          self.players[i].done = True
+          self.players[i].is_active = False
+      
+      flag = True
+      for player in players:
+        print(player.done)
+        if(not player.done):
+          flag = False
+      if(not flag):
         continue
       else:
-        flag = False
         break
-    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    if(flag):
-      rest = []
-      for k in range(i):
-        rest.append(cards[k])
-      for j in range(7):
-        rest.append(cards[j])
-      return [4, [cards[i],cards[i+1],cards[i+2],cards[i+3],cards[i+4]], rest]
-  return check_three_of_a_kind_AND_full_AND_quads(cards)
+ 
+  def start_part(self):
+    self.set_cards()
+    self.blinds()
+    self.round_of_betting()
+    
+    #print("flop: 1" + str(main.flop[0]) + " " + str(main.flop[1]) + " " + str(main.flop[2]))
+    #print("turn: " + str(main.turn))
+    #print("river: "+ str(main.river) + "\n")
+    #print(main.players)
+    table = [self.flop[0],self.flop[1],self.flop[2], self.turn, self.river]
+    cards_x = [self.players[0].cards[0], self.players[0].cards[1]]
+    cards_y = [self.players[1].cards[0], self.players[1].cards[1]]
+    cards_z = [self.players[2].cards[0], self.players[2].cards[1]]
+    result = get_winner([cards_x,cards_y,cards_z],table)
   
+  def start_game(self):
+    self.dealer = 0
+    for i in range(1):
+      self.start_part()
 
-def check(set_of_cards):
-  #check_royal_flush(a,b,c,d,e,f,g) # 9
-  #check_straight_flush(a,b,c,d,e,f,g) # 8
-  #check_flush(a,b,c,d,e,f,g) # 5
-  c = check_straight(set_of_cards) # 4
-  print(c)
-  return c[0]
+n 	= 6	#input("Number of players: ")
+c 	= 300	#input("Players chips: ")
+sb 	= 1	#input("Small blind: ")
+bb 	= 2	#input("Big blind: ")
+ante 	= 0	#input("Ante: ")
+gtype	= 0
+players = []
+for i in range(int(n)):
+  players.append(Player(int(c)))
 
-def start_game():
-  main = Table()
-  main.players.add(Player(200))
-  
-  w = 0;
-  while w != 4:
-    main.set_cards()
-    print("flop: " + str(main.flop[0]) + " " + str(main.flop[1]) + " " + str(main.flop[2]))
-    print("turn: " + str(main.turn))
-    print("river: "+ str(main.river) + "\n")
-    print(main.players)
-    set_of_cards = [main.flop[0],main.flop[1],main.flop[2], main.turn, main.river, main.players.players[0].cards[0], main.players.players[0].cards[1]]
-    w = check(set_of_cards)
-
-start_game();
+Table(players,sb,bb,ante,gtype).start_game();
 
   
 

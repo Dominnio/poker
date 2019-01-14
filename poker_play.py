@@ -51,58 +51,58 @@ class Card:
 
 class Deck:
   cards = []
-  cards.append(Card(1,"2","C"))
-  cards.append(Card(2,"3","C"))
-  cards.append(Card(3,"4","C"))
-  cards.append(Card(4,"5","C"))
-  cards.append(Card(5,"6","C"))
-  cards.append(Card(6,"7","C"))
-  cards.append(Card(7,"8","C"))
-  cards.append(Card(8,"9","C"))
-  cards.append(Card(9,"T","C"))
-  cards.append(Card(10,"J","C"))
-  cards.append(Card(11,"Q","C"))
-  cards.append(Card(12,"K","C"))
-  cards.append(Card(13,"A","C"))
-  cards.append(Card(14,"2","D"))
-  cards.append(Card(15,"3","D"))
-  cards.append(Card(16,"4","D"))
-  cards.append(Card(17,"5","D"))
-  cards.append(Card(18,"6","D"))
-  cards.append(Card(19,"7","D"))
-  cards.append(Card(20,"8","D"))
-  cards.append(Card(21,"9","D"))
-  cards.append(Card(22,"T","D"))
-  cards.append(Card(23,"J","D"))
-  cards.append(Card(24,"Q","D"))
-  cards.append(Card(25,"K","D"))
-  cards.append(Card(26,"A","D"))
-  cards.append(Card(27,"2","H"))
-  cards.append(Card(28,"3","H"))
-  cards.append(Card(29,"4","H"))
-  cards.append(Card(30,"5","H"))
-  cards.append(Card(31,"6","H"))
-  cards.append(Card(32,"7","H"))
-  cards.append(Card(33,"8","H"))
-  cards.append(Card(34,"9","H"))
-  cards.append(Card(35,"T","H"))
-  cards.append(Card(36,"J","H"))
-  cards.append(Card(37,"Q","H"))
-  cards.append(Card(38,"K","H"))
-  cards.append(Card(39,"A","H"))
-  cards.append(Card(40,"2","S"))
-  cards.append(Card(41,"3","S"))
-  cards.append(Card(42,"4","S"))
-  cards.append(Card(43,"5","S"))
-  cards.append(Card(44,"6","S"))
-  cards.append(Card(45,"7","S"))
-  cards.append(Card(46,"8","S"))
-  cards.append(Card(47,"9","S"))
-  cards.append(Card(48,"T","S"))
-  cards.append(Card(49,"J","S"))
-  cards.append(Card(50,"Q","S"))
-  cards.append(Card(51,"K","S"))
-  cards.append(Card(52,"A","S"))
+  cards.append(Card(0,"2","C"))
+  cards.append(Card(1,"3","C"))
+  cards.append(Card(2,"4","C"))
+  cards.append(Card(3,"5","C"))
+  cards.append(Card(4,"6","C"))
+  cards.append(Card(5,"7","C"))
+  cards.append(Card(6,"8","C"))
+  cards.append(Card(7,"9","C"))
+  cards.append(Card(8,"T","C"))
+  cards.append(Card(9,"J","C"))
+  cards.append(Card(10,"Q","C"))
+  cards.append(Card(11,"K","C"))
+  cards.append(Card(12,"A","C"))
+  cards.append(Card(13,"2","D"))
+  cards.append(Card(14,"3","D"))
+  cards.append(Card(15,"4","D"))
+  cards.append(Card(16,"5","D"))
+  cards.append(Card(17,"6","D"))
+  cards.append(Card(18,"7","D"))
+  cards.append(Card(19,"8","D"))
+  cards.append(Card(20,"9","D"))
+  cards.append(Card(21,"T","D"))
+  cards.append(Card(22,"J","D"))
+  cards.append(Card(23,"Q","D"))
+  cards.append(Card(24,"K","D"))
+  cards.append(Card(25,"A","D"))
+  cards.append(Card(26,"2","H"))
+  cards.append(Card(27,"3","H"))
+  cards.append(Card(28,"4","H"))
+  cards.append(Card(29,"5","H"))
+  cards.append(Card(30,"6","H"))
+  cards.append(Card(31,"7","H"))
+  cards.append(Card(32,"8","H"))
+  cards.append(Card(33,"9","H"))
+  cards.append(Card(34,"T","H"))
+  cards.append(Card(35,"J","H"))
+  cards.append(Card(36,"Q","H"))
+  cards.append(Card(37,"K","H"))
+  cards.append(Card(38,"A","H"))
+  cards.append(Card(39,"2","S"))
+  cards.append(Card(40,"3","S"))
+  cards.append(Card(41,"4","S"))
+  cards.append(Card(42,"5","S"))
+  cards.append(Card(43,"6","S"))
+  cards.append(Card(44,"7","S"))
+  cards.append(Card(45,"8","S"))
+  cards.append(Card(46,"9","S"))
+  cards.append(Card(47,"T","S"))
+  cards.append(Card(48,"J","S"))
+  cards.append(Card(49,"Q","S"))
+  cards.append(Card(50,"K","S"))
+  cards.append(Card(51,"A","S"))
 
   def get_card(self, num):
     return self.cards[num]
@@ -230,9 +230,7 @@ def check(cards):
   layout = check_straight_flush(seq,col)
   return layout
 
-def compare(cards_x, cards_y, table):
-  x = check(table + cards_x)
-  y = check(table + cards_y)
+def compare(x, y, table):
   if(x[0] > y[0]):
     return [1,x,y]
   if(x[0] < y[0]):
@@ -259,53 +257,48 @@ def compare(cards_x, cards_y, table):
         return [-1,x,y]
   return [0,x,y]
 
-def get_winner(cards, table):
-  save = cards.copy()
-  order = np.arange(len(cards))
-  n = len(cards)
-  while n > 1:
-    for i in range(n - 1):
-      c = compare(cards[i],cards[i+1],table)[0]
-      if(c == -1):
-        tmp = cards[i]
-        cards[i] = cards[i+1]
-        cards[i+1] = tmp
-        tmp = order[i]
-        order[i] = order[i+1]
-        order[i+1] = tmp
-    n = n - 1
-  ret_order = [[order[0]]]
-  idx = 0
-  for i in range(i,len(cards) - 1):
-    c = compare(cards[i],cards[i+1],table)[0]
-    if(c == 0):
-      ret_order[idx].append(order[i+1])
-    else:
-      ret_order.append([order[i+1]])
-      idx += 1
-  for i in range(len(save)): 
-    cards[i] = check(table + save[i])
-  return [ret_order,cards]
-
 def odds(cards, table, opponents):
   deck = Deck()
-  deck.cards.pop(cards[0].order - 1)
-  deck.cards.pop(cards[1].order - 1)
+  to_remove_order = [int(cards[0].order), int(cards[1].order)]
   for i in range(len(table)):
-    deck.cards.pop(table[i].pop(table[i].order - 1))
+    to_remove_order.append(int(table[i].order))
 
-  players = []
-  for i in range(int(len(opponents))):
+  to_remove_order.sort(reverse = True)
+  for i in to_remove_order:
+    deck.cards.pop(i)
+
+  players = [] 
+  players.append(Player(int(200)))
+  players[0].cards = cards
+  for i in range(opponents):
     players.append(Player(int(200)))
 
-  for i in range(1000):
-    n = len(opponents)*2
-    c = random.sample(range(len(deck)),n)
-    for player in self.players:
-      player.set_cards(deck.get_card(c[i]), deck.get_card(c[i+1]))
-      i += 2
-    
+  n = opponents*2 + (5 - len(table))
 
+  x = np.zeros(10)
+  for i in range(10000):
+    c = random.sample(range(len(deck.cards)),n)
+    i = 0
+    for j in range(1,len(players)):
+      players[j].set_cards(deck.get_card(c[i]), deck.get_card(c[i+1]))
+      i += 2
+    tmp_table = table.copy()
+    for j in range(len(table),5):
+      tmp_table.append(deck.get_card(c[i]))
+      i += 1
+    end_table = Table(players,1,2,0,0)
+    end_table.flop = [] 
+    end_table.flop.append(tmp_table[0])
+    end_table.flop.append(tmp_table[1])
+    end_table.flop.append(tmp_table[2])
+    end_table.turn = tmp_table[3]
+    end_table.river = tmp_table[4]
+    result = end_table.get_winner()
+    x[int(result[1][0][0])] += 1
+      
+  print(cards)
+  print(x)
+    
 class Player:
   def __init__(self, stack):
     self.stack = stack
@@ -340,6 +333,43 @@ class Table:
     self.ante = ante
     self.game_type = game_type
 
+  def get_winner(self):
+    table = [self.flop[0],self.flop[1],self.flop[2], self.turn, self.river]
+    cards = []
+    for player in self.players:
+      cards.append(player.cards)
+    save = cards.copy()
+    order = np.arange(len(cards))
+    n = len(cards)
+
+    for i in range(len(self.players)):
+      cards[i] = check(table + cards[i])
+
+    while n > 1:
+      for i in range(n - 1):
+        c = compare(cards[i],cards[i+1],table)[0]
+        if(c == -1):
+          tmp = cards[i]
+          cards[i] = cards[i+1]
+          cards[i+1] = tmp
+          tmp = order[i]
+          order[i] = order[i+1]
+          order[i+1] = tmp
+      n = n - 1
+    ret_order = [[order[0]]]
+    idx = 0
+    for i in range(i,len(cards) - 1):
+      c = compare(cards[i],cards[i+1],table)[0]
+      if(c == 0):
+        ret_order[idx].append(order[i+1])
+      else:
+        ret_order.append([order[i+1]])
+        idx += 1
+    for i in range(len(save)): 
+      cards[i] = check(table + save[i])
+    return [ret_order,cards]
+
+
   def set_cards(self):
     n = 5 + len(self.players)*2
     c = random.sample(range(52),n)
@@ -351,9 +381,41 @@ class Table:
     self.river = self.deck.get_card(c[4])
     i = 5
     for player in self.players:
-      player.set_cards(self.deck.get_card(c[i]), self.deck.get_card(c[i+1]))
+      print(c[i])
+      player.set_cards(self.deck.cards[c[i]], self.deck.cards[c[i+1]])
       i += 2
+ 
+  def start_part(self):
+    self.set_cards()
+    table = []#[self.flop[0],self.flop[1],self.flop[2], self.turn, self.river]
+    odds(self.players[0].cards,table,len(self.players) - 1)
+    #self.blinds()
+    #self.round_of_betting()
+    #self.get_winner()
+  
+  def start_game(self):
+    self.dealer = 0
+    for i in range(10000):
+      self.start_part()
 
+############################################
+
+n 	= 6	#input("Number of players: ")
+c 	= 300	#input("Players chips: ")
+sb 	= 1	#input("Small blind: ")
+bb 	= 2	#input("Big blind: ")
+ante 	= 0	#input("Ante: ")
+gtype	= 0
+players = []
+for i in range(int(n)):
+  players.append(Player(int(c)))
+
+Table(players,sb,bb,ante,gtype).start_game();
+
+############################################
+
+
+'''
   def blinds(self):
     self.pot = 0
     if(len(players) == 2):
@@ -415,38 +477,7 @@ class Table:
         continue
       else:
         break
- 
-  def start_part(self):
-    self.set_cards()
-    self.blinds()
-    self.round_of_betting()
-    
-    #print("flop: 1" + str(main.flop[0]) + " " + str(main.flop[1]) + " " + str(main.flop[2]))
-    #print("turn: " + str(main.turn))
-    #print("river: "+ str(main.river) + "\n")
-    #print(main.players)
-    table = [self.flop[0],self.flop[1],self.flop[2], self.turn, self.river]
-    cards_x = [self.players[0].cards[0], self.players[0].cards[1]]
-    cards_y = [self.players[1].cards[0], self.players[1].cards[1]]
-    cards_z = [self.players[2].cards[0], self.players[2].cards[1]]
-    result = get_winner([cards_x,cards_y,cards_z],table)
-  
-  def start_game(self):
-    self.dealer = 0
-    for i in range(1):
-      self.start_part()
-
-n 	= 6	#input("Number of players: ")
-c 	= 300	#input("Players chips: ")
-sb 	= 1	#input("Small blind: ")
-bb 	= 2	#input("Big blind: ")
-ante 	= 0	#input("Ante: ")
-gtype	= 0
-players = []
-for i in range(int(n)):
-  players.append(Player(int(c)))
-
-Table(players,sb,bb,ante,gtype).start_game();
+'''
 
   
 

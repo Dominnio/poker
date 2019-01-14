@@ -2,134 +2,76 @@ import random
 import numpy as np
 import time
 
-def value_to_number(value):
-   if(value == "A"):
-     return 14
-   if(value == "K"):
-     return 13
-   if(value == "Q"):
-     return 12
-   if(value == "J"):
-     return 11
-   if(value == "T"):
-     return 10
-   return int(value)
-
-def color_to_number(color):
-  if(color == "C"):
-    c = 0
-  elif (color == "D"):
-    c = 1
-  elif (color == "H"):
-    c = 2
+def number_to_color(number):
+  if(number < 13):
+    c = "C"
+  elif(number < 26):
+    c = "D"
+  elif(number < 39):
+    c = "H"
   else:
-    c = 3
+    c = "S"
   return c
 
+def number_to_color_value(number):
+  if(number < 13):
+    cv = 0
+  elif(number < 26):
+    cv = 1
+  elif(number < 39):
+    cv = 2
+  else:
+    cv = 3
+  return cv
+
+def number_to_symbol(number):
+  number %= 13
+  if(number < 8):
+    s = str(number + 2)
+  elif(number == 11):
+    s = "K"
+  elif(number == 10):
+    s = "Q"
+  elif(number == 9):
+    s = "J"
+  elif(number == 8):
+    s = "T"
+  else:
+    s = "A"
+  return s
+
+def number_to_symbol_value(number):
+  return (number%13 + 2)
+
 class Card:
-  def __init__(self, order, value, color):
-    self.order = order
-    self.value = value
-    self.color = color
-    self.numbered_value = value_to_number(value)
-    self.numbered_color = color_to_number(color)
+  def __init__(self, number):
+    self.number = number
+    self.symbol_value = number_to_symbol_value(number)
+    self.color_value = number_to_color_value(number)
 
   def __str__(self):
-    return (self.value + self.color)
+    return (number_to_symbol(self.number) + number_to_color(self.number))
+
   def __repr__(self):
     return str(self)
+
   def __lt__(self,other):
-    x = self.numbered_value
-    y = other.numbered_value
-    return x < y
+    return self.symbol_value < other.symbol_value
+
   def __gt__(self,other):
-    x = self.numbered_value
-    y = other.numbered_value
-    return x > y
+    return self.symbol_value > other.symbol_value
+
   def __le__(self,other):
-    x = self.numbered_value
-    y = other.numbered_value
-    return x <= y
+    return self.symbol_value <= other.symbol_value
+
   def __ge__(self,other):
-    x = self.numbered_value
-    y = other.numbered_value
-    return x >= y
+    return self.symbol_value >= other.symbol_value
+
   def __eq__(self,other):
-    x = self.numbered_value
-    y = other.numbered_value
-    return x == y
+    return self.symbol_value == other.symbol_value
+
   def __ne__(self,other):
-    x = self.numbered_value
-    y = other.numbered_value
-    return x != y
-
-class Deck:
-  def __init__(self):
-    self.cards = []
-    self.cards.append(Card(0,"2","C"))
-    self.cards.append(Card(1,"3","C"))
-    self.cards.append(Card(2,"4","C"))
-    self.cards.append(Card(3,"5","C"))
-    self.cards.append(Card(4,"6","C"))
-    self.cards.append(Card(5,"7","C"))
-    self.cards.append(Card(6,"8","C"))
-    self.cards.append(Card(7,"9","C"))
-    self.cards.append(Card(8,"T","C"))
-    self.cards.append(Card(9,"J","C"))
-    self.cards.append(Card(10,"Q","C"))
-    self.cards.append(Card(11,"K","C"))
-    self.cards.append(Card(12,"A","C"))
-    self.cards.append(Card(13,"2","D"))
-    self.cards.append(Card(14,"3","D"))
-    self.cards.append(Card(15,"4","D"))
-    self.cards.append(Card(16,"5","D"))
-    self.cards.append(Card(17,"6","D"))
-    self.cards.append(Card(18,"7","D"))
-    self.cards.append(Card(19,"8","D"))
-    self.cards.append(Card(20,"9","D"))
-    self.cards.append(Card(21,"T","D"))
-    self.cards.append(Card(22,"J","D"))
-    self.cards.append(Card(23,"Q","D"))
-    self.cards.append(Card(24,"K","D"))
-    self.cards.append(Card(25,"A","D"))
-    self.cards.append(Card(26,"2","H"))
-    self.cards.append(Card(27,"3","H"))
-    self.cards.append(Card(28,"4","H"))
-    self.cards.append(Card(29,"5","H"))
-    self.cards.append(Card(30,"6","H"))
-    self.cards.append(Card(31,"7","H"))
-    self.cards.append(Card(32,"8","H"))
-    self.cards.append(Card(33,"9","H"))
-    self.cards.append(Card(34,"T","H"))
-    self.cards.append(Card(35,"J","H"))
-    self.cards.append(Card(36,"Q","H"))
-    self.cards.append(Card(37,"K","H"))
-    self.cards.append(Card(38,"A","H"))
-    self.cards.append(Card(39,"2","S"))
-    self.cards.append(Card(40,"3","S"))
-    self.cards.append(Card(41,"4","S"))
-    self.cards.append(Card(42,"5","S"))
-    self.cards.append(Card(43,"6","S"))
-    self.cards.append(Card(44,"7","S"))
-    self.cards.append(Card(45,"8","S"))
-    self.cards.append(Card(46,"9","S"))
-    self.cards.append(Card(47,"T","S"))
-    self.cards.append(Card(48,"J","S"))
-    self.cards.append(Card(49,"Q","S"))
-    self.cards.append(Card(50,"K","S"))
-    self.cards.append(Card(51,"A","S"))
-
-  def remove(self, card):
-    for i in range(len(self.cards)):
-      if(self.cards[i].order == card.order):
-        del self.cards[i]
-        break
-
-  def __str__(self):
-    s = ""
-    for card in self.cards:
-       s += str(card) + "\n"
-    return s
+    return self.symbol_value != other.symbol_value
 
 def set_seq(cards):
   n = len(cards)
@@ -147,7 +89,7 @@ def set_col(cards):
   n = len(cards)
   col = [[],[],[],[]]
   for card in cards:
-    col[card.numbered_color].append(card)
+    col[card.color_value].append(card)
   return col
 
 def check_two_pair(seq):
@@ -158,28 +100,36 @@ def check_two_pair(seq):
       for ss in seq:
         if(len(ss) == 2):
           seq_tmp.remove(ss)
-          return [3,s,ss,seq[0][0]]
-      return [2,s,seq[0][0],seq[1][0],seq[2][0]]
-  return [1,seq[0][0],seq[1][0],seq[2][0],seq[3][0],seq[4][0]]
+          s.append(ss[0])
+          s.append(ss[1])
+          s.append(seq[0][0])
+          return [3,s]
+      s.append(seq[0][0])
+      s.append(seq[1][0])
+      s.append(seq[2][0])
+      return [2,s]
+  return [1,[seq[0][0],seq[1][0],seq[2][0],seq[3][0],seq[4][0]]]
 
 def check_three(seq):
   for s in seq:
     if(len(s) == 3):
       seq.remove(s)
-      return [4,s,seq[0][0],seq[1][0]]
+      s.append(seq[0][0])
+      s.append(seq[1][0])
+      return [4,s]
   return check_two_pair(seq)
 
 def check_straight(seq,col):
   s = [seq[0][0]]
   for i in range(1,len(seq)):
-    if(seq[i][0].numbered_value == seq[i-1][0].numbered_value - 1):
+    if(seq[i][0].symbol_value == seq[i-1][0].symbol_value - 1):
       s.append(seq[i][0])
       if(len(s) == 5):
         return [5, s]
     else:
       s = [seq[i][0]]
   
-  if(len(s) == 4 and s[0].numbered_value == 5 and seq[0][0].numbered_value == 14):
+  if(len(s) == 4 and s[0].symbol_value == 5 and seq[0][0].symbol_value == 14):
     s.append(seq[0][0])
     return [5,s]
   return check_three(seq)
@@ -198,20 +148,24 @@ def check_full_house(seq,col):
   if(three):
     for ss in seq:
       if(len(ss) >= 2 and ss[0] != three[0]):
-        return [7,three,ss[:2]]
+        ss = ss[:2]
+        three.append(ss[0])
+        three.append(ss[1])
+        return [7,three]
   return check_flush(seq,col)
 
 def check_quads(seq,col):
   for s in seq:
     if(len(s) == 4):
-      seq.remove(s)   
-      return [8, s, seq[0][0]]
+      seq.remove(s) 
+      s.append(seq[0][0])  
+      return [8, s]
   return check_full_house(seq,col)
 
 def check_straight_flush(seq,col):
   straight = [seq[0][0]]
   for i in range(1,len(seq)):
-    if(seq[i][0].numbered_value == seq[i-1][0].numbered_value - 1):
+    if(seq[i][0].symbol_value == seq[i-1][0].symbol_value - 1):
       straight.append(seq[i][0])
       if(len(straight) == 5):
         flush = set_col(straight)
@@ -221,7 +175,7 @@ def check_straight_flush(seq,col):
     else:
       straight = [seq[i][0]]
 
-  if(len(straight) == 4 and straight[0].numbered_value == 5 and seq[0][0].numbered_value == 14):
+  if(len(straight) == 4 and straight[0].symbol_value == 5 and seq[0][0].symbol_value == 14):
     straight.append(seq[0][0])
     flush = set_col(straight)
     for c in flush:
@@ -239,38 +193,76 @@ def check(cards):
   layout = check_straight_flush(seq,col)
   return layout
 
-def flat(layout):
-  flat = []
-  flat.append(layout[0])
-  for i in range(1,len(layout)):
-    if(isinstance(layout[i],list)):
-      flat.append(layout[i][0].numbered_value)
-    else:
-      flat.append(layout[i].numbered_value)
-  return flat
-
 def compare(x, y):
-  for i in range(len(x)):
-    if(x[i] > y[i]):
+  if(x[0] > y[0]):
+    return True
+  if(x[0] < y[0]):
+    return False
+  for i in range(len(x[1])):
+    if(x[1][i] > y[1][i]):
       return True
-    if(x[i] < y[i]):
+    if(x[1][i] < y[1][i]):
       return False
   return None
 
 def odds(cards,table,opponents):
-  d = Deck()
+  deck = np.arange(52).tolist()
+  deck.remove(cards[0].number)
+  deck.remove(cards[1].number)
+  for e in table:
+    deck.remove(e.number)
+  n = 5-len(table)+2*opponents
+  test = Table()
+
+  win = 0
+  tie = 0
+  lose = 0 
+  N = 3000
+
+  sets = np.zeros(9)
+
+  for i in range(N):
+    rand = random.sample(deck, n)
+    test_table = table.copy()
+    players = []
+    for i in range(int(1+opponents)):
+      players.append(Player(int(200)))
+    players[0].cards = cards
+
+    for i in range(5 - len(table)):
+      test_table.append(Card(rand[i]))
+    i = 5-len(table)
+    for j in range(1,len(players)):
+      players[j].cards = [Card(rand[i]), Card(rand[i+1])]
+      i += 2
+
+    test.table = test_table
+    test.players = players
+    result = test.get_winner()
+
+    for x in result[0][0]:
+      if(x == 0 and len(result[0][0]) == 1):
+        win += 1
+      elif( x == 0 and len(result[0][0]) != 1):
+        tie += 1
+      else:
+        lose += 1
+    sets[result[1][0][0] - 1] += 1
+
   print(cards)
-  d.remove(cards[0])
-  d.remove(cards[1])
-  print(d)
+  print(table)
+  print("%.4f" % float(win/N*100))
+  print("%.4f" % float(tie/N*100))
+  print("%.4f" % float(lose/N*100))
+  sets = sets/N*100
+  sets = np.flip(sets)
+  print("\n")
+  for s in sets:
+    print("%.4f" % float(s))
 
 class Player:
   def __init__(self, stack):
     self.stack = stack
-    self.cards = []
-    self.paid = 0
-    self.is_active = True
-    self.done = 0
   def __str__(self):
     s = ("chips: " + str(self.stack))
     if(len(self.cards) != 0):
@@ -278,10 +270,6 @@ class Player:
     else:
       s += ", cards: -"
     return s
-  def set_cards(self, card_1, card_2):
-    self.cards = []
-    self.cards.append(card_1)
-    self.cards.append(card_2)
   def bet(self,bet):
     self.stack -= bet
     self.paid += bet
@@ -290,102 +278,71 @@ class Player:
     self.stack += prize
 
 class Table:
-  def __init__(self,players,sb,bb,ante,game_type):
-    self.deck = Deck()
-    self.players = players
-    self.sb = sb
-    self.bb = bb
-    self.ante = ante
-    self.game_type = game_type
-
   def get_winner(self):
-    table = [self.flop[0],self.flop[1],self.flop[2], self.turn, self.river]
-    layout = []
-    for player in self.players:
-      layout.append(player.cards)
-    save = layout.copy()
-    n = len(layout)
+    layouts = []
+    n = len(self.players)
+    for i in range(n):
+      layouts.append(check(self.table + self.players[i].cards))   
+    save = layouts.copy()
     order = np.arange(n)
-    flat_layout = []
-    for i in range(len(self.players)):
-      layout[i] = check(table + layout[i])
-      flat_layout.append(flat(layout[i]))
-
     while n > 1:
       for i in range(n - 1):
-        c = compare(flat_layout[i],flat_layout[i+1])
+        c = compare(layouts[i],layouts[i+1])
         if(c == False):
-          tmp = flat_layout[i]
-          flat_layout[i] = flat_layout[i+1]
-          flat_layout[i+1] = tmp
+          tmp = layouts[i]
+          layouts[i] = layouts[i+1]
+          layouts[i+1] = tmp
           tmp = order[i]
           order[i] = order[i+1]
           order[i+1] = tmp
       n = n - 1
     ret_order = [[order[0]]]
     idx = 0
-    for i in range(i,len(flat_layout) - 1):
-      c = compare(flat_layout[i],flat_layout[i+1])
+    for i in range(i,len(layouts) - 1):
+      c = compare(layouts[i],layouts[i+1])
       if(c == None):
         ret_order[idx].append(order[i+1])
       else:
         ret_order.append([order[i+1]])
         idx += 1
-
-    return [ret_order,layout]
-
+    return [ret_order,save]
 
   def set_cards(self):
     n = 5 + len(self.players)*2
     c = random.sample(range(52),n)
-    self.flop = []
-    self.flop.append(self.deck.cards[c[0]])
-    self.flop.append(self.deck.cards[c[1]])
-    self.flop.append(self.deck.cards[c[2]])
-    self.turn = self.deck.cards[c[3]]
-    self.river = self.deck.cards[c[4]]
-    self.table = [self.flop,self.turn,self.river]
-    i = 5
-    for player in self.players:
-      player.set_cards(self.deck.cards[c[i]], self.deck.cards[c[i+1]])
-      i += 2
+    self.table = [Card(c[0]),Card(c[1]),Card(c[2]),Card(c[3]),Card(c[4])]
+    idx = 5
+    for i in range(len(self.players)):
+      self.players[i].cards = [Card(c[idx]), Card(c[idx+1])]
+      idx += 2
  
   def start_part(self):
+    n 	= 7	#input("Number of players: ")
+    c 	= 300	#input("Players chips: ")
+    self.players = []
+    for i in range(int(n)):
+      self.players.append(Player(int(c)))
+
     self.set_cards()
-    table = []#[self.flop[0],self.flop[1],self.flop[2], self.turn, self.river]
-    #self.blinds()
-    #self.round_of_betting()
-    odds(self.players[0].cards,table,5)
+    odds(self.players[0].cards, self.table, n - 1)
     result = self.get_winner()
     '''
     print("\n")
     print("table: " + str(self.table))
-    print(result[0])
-    for p in range(len(result[1])):
-      for i in range(len(result[0])):
-        for j in range(len(result[0][i])):
-          if(result[0][i][j] == p):
-            print(str(result[1][p]) + "\t\t position: " + str(i+1) + "\t cards:" + str(self.players[p].cards))
+    print("[[first place], [second place], ...] : " + str(result[0]))
+    for i in range(len(result[1])):
+      print(str(result[1][i]) + "\t\tplayer: " + str(i) + "\tcards: " + str(self.players[i].cards))
+      for x in range(len(result[0])):
+        for y in result[0][x]:
+          if(i == y):
+            print("\t\t\t\t\tposition: " + str(x+1))
     '''
   def start_game(self):
-    self.dealer = 0
-    t = time.time()
-    for i in range(10000):
+    for i in range(1):
       self.start_part()
-    print(time.time() - t)
 ############################################
 
-n 	= 6	#input("Number of players: ")
-c 	= 300	#input("Players chips: ")
-sb 	= 1	#input("Small blind: ")
-bb 	= 2	#input("Big blind: ")
-ante 	= 0	#input("Ante: ")
-gtype	= 0
-players = []
-for i in range(int(n)):
-  players.append(Player(int(c)))
-
-Table(players,sb,bb,ante,gtype).start_game();
+Table().start_game();
 
 ############################################
 

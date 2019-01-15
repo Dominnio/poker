@@ -1,16 +1,17 @@
 import random
 import numpy as np
 import time
+import itertools
 
 def number_to_color(number):
   if(number < 13):
-    c = "C"
+    c = "\u2663"
   elif(number < 26):
-    c = "D"
+    c = "\u2666"
   elif(number < 39):
-    c = "H"
+    c = "\u2665"
   else:
-    c = "S"
+    c = "\u2660"
   return c
 
 def number_to_color_value(number):
@@ -162,26 +163,47 @@ def check_quads(seq,col):
       return [8, s]
   return check_full_house(seq,col)
 
-def check_straight_flush(seq,col):
-  straight = [seq[0][0]]
+'''
+def check_straight(seq,col):
+  s = [seq[0][0]]
   for i in range(1,len(seq)):
     if(seq[i][0].symbol_value == seq[i-1][0].symbol_value - 1):
-      straight.append(seq[i][0])
-      if(len(straight) == 5):
-        flush = set_col(straight)
-        for c in flush:
-          if(len(c) == 5):
-            return [9, straight]
+      s.append(seq[i][0])
+      if(len(s) == 5):
+        return [5, s]
     else:
-      straight = [seq[i][0]]
+      s = [seq[i][0]]
+  
+  if(len(s) == 4 and s[0].symbol_value == 5 and seq[0][0].symbol_value == 14):
+    s.append(seq[0][0])
+    return [5,s]
+  return check_three(seq)
+
+def check_flush(seq,col):
+  for c in col:
+    if(len(c) >= 5):
+      return [6,c[:5]]
+  return check_straight(seq,col)
+'''
+
+7 6 5 4 3 2 cos 
+def check_straight_flush(seq,col):
+  for c in col:
+    if(len(c) >= 5):
+      straight = [c[0]]
+      for i in range(1,len(c)):
+        if(c[i].symbol_value == c[i-1].symbol_value - 1):
+          straight.append(c[i])
+          if(len(straight) == 5):
+            return [9, straight]
+        else:
+          straight = [seq[i][0]]
 
   if(len(straight) == 4 and straight[0].symbol_value == 5 and seq[0][0].symbol_value == 14):
     straight.append(seq[0][0])
     flush = set_col(straight)
     for c in flush:
       if(len(c) == 5):
-        ace = straight.pop(0)
-        straight.append(ace)
         return [9, straight]
 
   return check_quads(seq,col)
@@ -217,7 +239,7 @@ def odds(cards,table,opponents):
   win = 0
   tie = 0
   lose = 0 
-  N = 3000
+  N = 10000
 
   sets = np.zeros(9)
 
@@ -240,25 +262,49 @@ def odds(cards,table,opponents):
     test.players = players
     result = test.get_winner()
 
+    print("\n========================================================")
+    print("table: " + str(test.table))
+    print(str(result[0]) + "\n")
+    for i in range(len(result[1])):
+      for x in range(len(result[0])):
+        for y in result[0][x]:
+          if(i == y):
+            print("> position: " + str(x+1))
+      print(str(result[1][i]) + "\t\tplayer: " + str(i) + "\tcards: " + str(test.players[i].cards))
+
+    flag = True
     for x in result[0][0]:
       if(x == 0 and len(result[0][0]) == 1):
         win += 1
+        flag = False
+        break
       elif( x == 0 and len(result[0][0]) != 1):
         tie += 1
-      else:
-        lose += 1
+        flag = False
+        break
+    if(flag):
+      lose += 1
     sets[result[1][0][0] - 1] += 1
 
   print(cards)
   print(table)
-  print("%.4f" % float(win/N*100))
-  print("%.4f" % float(tie/N*100))
-  print("%.4f" % float(lose/N*100))
+  print("\nwin: %.4f" % float(win/N*100))
+  print("tie: %.4f" % float(tie/N*100))
+  print("lose: %.4f" % float(lose/N*100))
+  print("all: %.4f" % float((lose+win+tie)/N*100))
+
   sets = sets/N*100
   sets = np.flip(sets)
-  print("\n")
-  for s in sets:
-    print("%.4f" % float(s))
+  print("\nstraight flush: %.4f" % float(sets[0]))
+  print("quads: %.4f" % float(sets[1]))
+  print("full house: %.4f" % float(sets[2]))
+  print("flush: %.4f" % float(sets[3]))
+  print("straight: %.4f" % float(sets[4]))
+  print("three of kind: %.4f" % float(sets[5]))
+  print("two pair: %.4f" % float(sets[6]))
+  print("one pair: %.4f" % float(sets[7]))
+  print("high card: %.4f" % float(sets[8]))
+
 
 class Player:
   def __init__(self, stack):
@@ -315,27 +361,59 @@ class Table:
     for i in range(len(self.players)):
       self.players[i].cards = [Card(c[idx]), Card(c[idx+1])]
       idx += 2
- 
+
+  def all_7_comb(self,a,b,c,d,e,f,g):
+    self.table = [Card(a),Card(b),Card(c),Card(d),Card(e)]
+    self.players[0].cards = [Card(f), Card(g)]
+
   def start_part(self):
-    n 	= 7	#input("Number of players: ")
-    c 	= 300	#input("Players chips: ")
+    n = 1	#input("Number of players: ")
+    c = 300	#input("Players chips: ")
+    l = [0,1,2,3,4,5,6,7,8,9,10,11,12]
+    l = list(itertools.combinations(l,5))
+    ll = np.arange(13,52).tolist()
+    ll = list(itertools.combinations(ll,2))
+
     self.players = []
     for i in range(int(n)):
       self.players.append(Player(int(c)))
 
-    self.set_cards()
-    odds(self.players[0].cards, self.table, n - 1)
-    result = self.get_winner()
+    sets = np.zeros(9)
+
+    for a in l:
+      for b in ll:
+        print(str(a[0])+ " " + str(a[1])+ " " + str(a[2])+ " " + str(a[3])+ " " + str(a[4])+ " " + str(b[0])+ " " + str(b[1]))
+        self.all_7_comb(a[0],a[1],a[2],a[3],a[4],b[0],b[1]) 
+        #self.set_cards()
+        #odds(self.players[0].cards, [], n - 1)
+        result = self.get_winner()
+        print(result)
+        for p in result[1]:
+          sets[p[0] - 1] += 1
+
+    print(sets)
+    sets = sets*100
+    sets = np.flip(sets)
+    print("\nstraight flush: %.6f" % float(sets[0]))
+    print("quads: %.6f" % float(sets[1]))
+    print("full house: %.6f" % float(sets[2]))
+    print("flush: %.6f" % float(sets[3]))
+    print("straight: %.6f" % float(sets[4]))
+    print("three of kind: %.6f" % float(sets[5]))
+    print("two pair: %.6f" % float(sets[6]))
+    print("one pair: %.6f" % float(sets[7]))
+    print("high card: %.6f" % float(sets[8]))      
+
     '''
-    print("\n")
+    print("===========================================================\n")
     print("table: " + str(self.table))
-    print("[[first place], [second place], ...] : " + str(result[0]))
+    print(str(result[0]) + "\n")
     for i in range(len(result[1])):
-      print(str(result[1][i]) + "\t\tplayer: " + str(i) + "\tcards: " + str(self.players[i].cards))
       for x in range(len(result[0])):
         for y in result[0][x]:
           if(i == y):
-            print("\t\t\t\t\tposition: " + str(x+1))
+            print("> position: " + str(x+1))
+      print(str(result[1][i]) + "\t\tplayer: " + str(i) + "\tcards: " + str(self.players[i].cards))
     '''
   def start_game(self):
     for i in range(1):
@@ -346,8 +424,65 @@ Table().start_game();
 
 ############################################
 
+
+'''
+  Hand                Possibilities        Probability		My program (all comb)        
+  ---------------     -------------        -----------		---------------------         
+  Royal Flush              4,324              0.00324%		
+  Straight Flush          37,260              0.0279%               25,712     ->>> Za mało o 15872    (powinno być 10396 na kolor)
+  4 of a kind            224,848              0.168%               224,848	
+  Full House           3,473,184              2.60%              3,473,184
+  Flush                4,047,644              3.03%              4,063,516     ->>> Za duzo o 15872
+  Straight             6,180,020              4.62%		 6,180,020
+  Three of a Kind      6,461,620              4.83%		 6,461,620
+  Two Pair            31,433,400             23.50%	        31,433,400	
+  Pair                58,627,800             43.82%             58,627,800		
+  High Card           23,294,460             17.41%             23,294,460
+
+		     133,784,560                               133,784,560    
+
+straight flush: 0.0188
+quads: 0.1680
+full house: 2.5944
+flush: 3.0362
+straight: 4.6184
+three of kind: 4.8245
+two pair: 23.5299
+one pair: 43.8102
+high card: 17.3995
+
+
+Src: http://mathforum.org/library/drmath/view/65306.html
+
+'''
+
   
 
+'''
+  def all_7_comb(self,a,b,c,d,e,f,g):
+    self.table = [Card(a),Card(b),Card(c),Card(d),Card(e)]
+    self.players[0].cards = [Card(f), Card(g)]
+'''
 
+'''
+    num = 0 
+    for a in range(N):
+      fil = open("result.txt",'a')
+      fil.write(str(sets) + "\n\n")
+      fil.close()
+      for b in range(a+1,N):
+        for c in range(b+1,N):
+          for d in range(c+1,N):
+            for e in range(d+1,N):
+              for f in range(e+1,N):
+                for g in range(f+1,N): 
+                  print(str(a)+ " " + str(b)+ " " + str(c)+ " " + str(d)+ " " + str(e)+ " " + str(f)+ " " + str(g))
+                  self.all_7_comb(a,b,c,d,e,f,g) 
+                  #self.set_cards()
+                  #odds(self.players[0].cards, [], n - 1)
+                  result = self.get_winner()
+                  for p in result[1]:
+                    sets[p[0] - 1] += 1
+'''
 
 

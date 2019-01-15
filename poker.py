@@ -163,49 +163,21 @@ def check_quads(seq,col):
       return [8, s]
   return check_full_house(seq,col)
 
-'''
-def check_straight(seq,col):
-  s = [seq[0][0]]
-  for i in range(1,len(seq)):
-    if(seq[i][0].symbol_value == seq[i-1][0].symbol_value - 1):
-      s.append(seq[i][0])
-      if(len(s) == 5):
-        return [5, s]
-    else:
-      s = [seq[i][0]]
-  
-  if(len(s) == 4 and s[0].symbol_value == 5 and seq[0][0].symbol_value == 14):
-    s.append(seq[0][0])
-    return [5,s]
-  return check_three(seq)
-
-def check_flush(seq,col):
-  for c in col:
-    if(len(c) >= 5):
-      return [6,c[:5]]
-  return check_straight(seq,col)
-'''
-
-7 6 5 4 3 2 cos 
 def check_straight_flush(seq,col):
   for c in col:
     if(len(c) >= 5):
-      straight = [c[0]]
+      s = [c[0]]
       for i in range(1,len(c)):
         if(c[i].symbol_value == c[i-1].symbol_value - 1):
-          straight.append(c[i])
-          if(len(straight) == 5):
-            return [9, straight]
+          s.append(c[i])
+          if(len(s) == 5):
+            return [9, s]
         else:
-          straight = [seq[i][0]]
-
-  if(len(straight) == 4 and straight[0].symbol_value == 5 and seq[0][0].symbol_value == 14):
-    straight.append(seq[0][0])
-    flush = set_col(straight)
-    for c in flush:
-      if(len(c) == 5):
-        return [9, straight]
-
+          s = [c[i]]
+      if(len(s) == 4 and s[0].symbol_value == 5 and c[0].symbol_value == 14):
+        s.append(c[0])
+        return [9,s]
+      return check_quads(seq,col)
   return check_quads(seq,col)
 
 def check(cards):
@@ -239,7 +211,7 @@ def odds(cards,table,opponents):
   win = 0
   tie = 0
   lose = 0 
-  N = 10000
+  N = 5000
 
   sets = np.zeros(9)
 
@@ -260,17 +232,8 @@ def odds(cards,table,opponents):
 
     test.table = test_table
     test.players = players
-    result = test.get_winner()
 
-    print("\n========================================================")
-    print("table: " + str(test.table))
-    print(str(result[0]) + "\n")
-    for i in range(len(result[1])):
-      for x in range(len(result[0])):
-        for y in result[0][x]:
-          if(i == y):
-            print("> position: " + str(x+1))
-      print(str(result[1][i]) + "\t\tplayer: " + str(i) + "\tcards: " + str(test.players[i].cards))
+    result = test.get_winner()
 
     flag = True
     for x in result[0][0]:
@@ -287,7 +250,7 @@ def odds(cards,table,opponents):
     sets[result[1][0][0] - 1] += 1
 
   print(cards)
-  print(table)
+  #print(table)
   print("\nwin: %.4f" % float(win/N*100))
   print("tie: %.4f" % float(tie/N*100))
   print("lose: %.4f" % float(lose/N*100))
@@ -367,44 +330,17 @@ class Table:
     self.players[0].cards = [Card(f), Card(g)]
 
   def start_part(self):
-    n = 1	#input("Number of players: ")
+    n = 7	#input("Number of players: ") max 23 min 1
     c = 300	#input("Players chips: ")
-    l = [0,1,2,3,4,5,6,7,8,9,10,11,12]
-    l = list(itertools.combinations(l,5))
-    ll = np.arange(13,52).tolist()
-    ll = list(itertools.combinations(ll,2))
-
+    N = 52
     self.players = []
     for i in range(int(n)):
       self.players.append(Player(int(c)))
 
-    sets = np.zeros(9)
+    self.set_cards()
+    odds(self.players[0].cards, [], n - 1)
+    result = self.get_winner()
 
-    for a in l:
-      for b in ll:
-        print(str(a[0])+ " " + str(a[1])+ " " + str(a[2])+ " " + str(a[3])+ " " + str(a[4])+ " " + str(b[0])+ " " + str(b[1]))
-        self.all_7_comb(a[0],a[1],a[2],a[3],a[4],b[0],b[1]) 
-        #self.set_cards()
-        #odds(self.players[0].cards, [], n - 1)
-        result = self.get_winner()
-        print(result)
-        for p in result[1]:
-          sets[p[0] - 1] += 1
-
-    print(sets)
-    sets = sets*100
-    sets = np.flip(sets)
-    print("\nstraight flush: %.6f" % float(sets[0]))
-    print("quads: %.6f" % float(sets[1]))
-    print("full house: %.6f" % float(sets[2]))
-    print("flush: %.6f" % float(sets[3]))
-    print("straight: %.6f" % float(sets[4]))
-    print("three of kind: %.6f" % float(sets[5]))
-    print("two pair: %.6f" % float(sets[6]))
-    print("one pair: %.6f" % float(sets[7]))
-    print("high card: %.6f" % float(sets[8]))      
-
-    '''
     print("===========================================================\n")
     print("table: " + str(self.table))
     print(str(result[0]) + "\n")
@@ -414,10 +350,12 @@ class Table:
           if(i == y):
             print("> position: " + str(x+1))
       print(str(result[1][i]) + "\t\tplayer: " + str(i) + "\tcards: " + str(self.players[i].cards))
-    '''
+
   def start_game(self):
     for i in range(1):
       self.start_part()
+
+
 ############################################
 
 Table().start_game();
@@ -425,46 +363,31 @@ Table().start_game();
 ############################################
 
 
+# Sets probability
 '''
-  Hand                Possibilities        Probability		My program (all comb)        
-  ---------------     -------------        -----------		---------------------         
-  Royal Flush              4,324              0.00324%		
-  Straight Flush          37,260              0.0279%               25,712     ->>> Za mało o 15872    (powinno być 10396 na kolor)
+  Hand                Possibilities        Probability		My program       
+  ---------------     -------------        -----------		-----------      
+  Royal Flush              4,324              0.00324%		                 
+  Straight Flush          37,260              0.0279%               41,584 
   4 of a kind            224,848              0.168%               224,848	
   Full House           3,473,184              2.60%              3,473,184
-  Flush                4,047,644              3.03%              4,063,516     ->>> Za duzo o 15872
+  Flush                4,047,644              3.03%              4,047,644    
   Straight             6,180,020              4.62%		 6,180,020
   Three of a Kind      6,461,620              4.83%		 6,461,620
   Two Pair            31,433,400             23.50%	        31,433,400	
   Pair                58,627,800             43.82%             58,627,800		
   High Card           23,294,460             17.41%             23,294,460
 
-		     133,784,560                               133,784,560    
-
-straight flush: 0.0188
-quads: 0.1680
-full house: 2.5944
-flush: 3.0362
-straight: 4.6184
-three of kind: 4.8245
-two pair: 23.5299
-one pair: 43.8102
-high card: 17.3995
+  All		     133,784,560            100.00%            133,784,560    
 
 
 Src: http://mathforum.org/library/drmath/view/65306.html
 
 '''
-
-  
-
-'''
-  def all_7_comb(self,a,b,c,d,e,f,g):
-    self.table = [Card(a),Card(b),Card(c),Card(d),Card(e)]
-    self.players[0].cards = [Card(f), Card(g)]
+ 
+# All combination check test
 '''
 
-'''
     num = 0 
     for a in range(N):
       fil = open("result.txt",'a')

@@ -211,8 +211,7 @@ def odds(cards,table,opponents):
   win = 0
   tie = 0
   lose = 0 
-  N = 5000
-
+  N = 1000000
   sets = np.zeros(9)
 
   for i in range(N):
@@ -229,23 +228,18 @@ def odds(cards,table,opponents):
     for j in range(1,len(players)):
       players[j].cards = [Card(rand[i]), Card(rand[i+1])]
       i += 2
-
     test.table = test_table
     test.players = players
 
     result = test.get_winner()
 
     flag = True
-    for x in result[0][0]:
-      if(x == 0 and len(result[0][0]) == 1):
+    if(0 in result[0][0]):
+      if(len(result[0][0]) == 1):
         win += 1
-        flag = False
-        break
-      elif( x == 0 and len(result[0][0]) != 1):
+      else:
         tie += 1
-        flag = False
-        break
-    if(flag):
+    else:
       lose += 1
     sets[result[1][0][0] - 1] += 1
 
@@ -330,7 +324,7 @@ class Table:
     self.players[0].cards = [Card(f), Card(g)]
 
   def start_part(self):
-    n = 7	#input("Number of players: ") max 23 min 1
+    n = 3	#input("Number of players: ") max 23 min 1
     c = 300	#input("Players chips: ")
     N = 52
     self.players = []
@@ -387,7 +381,6 @@ Src: http://mathforum.org/library/drmath/view/65306.html
  
 # All combination check test
 '''
-
     num = 0 
     for a in range(N):
       fil = open("result.txt",'a')
